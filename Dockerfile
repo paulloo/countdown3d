@@ -7,7 +7,7 @@ WORKDIR /app
 # 安装必要的构建工具
 RUN apk add --no-cache python3 make g++
 
-# 安装 pnpm
+# 安装 pnpm 和 typescript
 RUN npm install -g pnpm typescript
 
 # 复制 package.json 和 workspace 配置
@@ -21,10 +21,13 @@ RUN pnpm install --frozen-lockfile
 # 复制源代码
 COPY . .
 
-# 先构建 shared 包
-RUN cd packages/shared && pnpm build
+# 先安装 shared 包的依赖
+RUN cd packages/shared && pnpm install
 
-# 然后构建 web 应用
+# 构建 shared 包
+RUN cd packages/shared && pnpm exec tsc
+
+# 构建 web 应用
 RUN cd apps/web && pnpm build
 
 # 生产环境镜像
