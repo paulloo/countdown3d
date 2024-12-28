@@ -1,0 +1,17 @@
+{
+  "name": "countdown3d-monorepo",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter @countdown3d/shared dev\" \"pnpm --filter @countdown3d/server dev\" \"pnpm --filter @countdown3d/web dev\"",
+    "build": "pnpm -r build",
+    "start": "pnpm -r start"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "packageManager": "pnpm@9.15.1+sha512.1acb565e6193efbebda772702950469150cf12bcc764262e7587e71d19dc98a423dff9536e57ea44c49bdf790ff694e83c27be5faa23d67e0c033b583be4bfcf",
+  "devDependencies": {
+    "concurrently": "^9.1.1"
+  }
+}

@@ -1,0 +1,32 @@
+# 依赖目录
+node_modules
+.pnpm-store
+
+# 构建输出
+.next
+out
+dist
+build
+
+# 开发文件
+.git
+.gitignore
+.env.local
+.env.development
+.env.test
+README.md
+*.log
+
+# IDE 配置
+.vscode
+.idea
+
+# 测试文件
+__tests__
+*.test.*
+*.spec.*
+
+# 其他
+.DS_Store
+*.pem
+.env*.local 
