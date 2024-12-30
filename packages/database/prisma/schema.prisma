@@ -1,0 +1,56 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../dist/client"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Location {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  latitude  Float
+  longitude Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String?  @db.ObjectId
+  user      User?    @relation(fields: [userId], references: [id])
+  name      String?
+  address   String?
+  type      String?  // "PROPHECY" | "USER_LOCATION"
+  status    String?  // "PENDING" | "FULFILLED" | "FAILED"
+
+  @@index([createdAt])
+  @@index([userId])
+  @@index([type])
+}
+
+model User {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  email     String     @unique
+  name      String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  locations Location[]
+  settings  Json?
+}
+
+model Prophecy {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  date        DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  status      String   // "PENDING" | "FULFILLED" | "FAILED"
+  source      String?
+  tags        String[]
+  metadata    Json?
+
+  @@index([date])
+  @@index([status])
+} 

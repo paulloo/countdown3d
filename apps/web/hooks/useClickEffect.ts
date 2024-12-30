@@ -2,6 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { config } from '@countdown3d/shared';
+import type { Position } from '@countdown3d/shared';
+import { io, Socket } from 'socket.io-client';
 
 interface ClickPosition {
   lat: number;
@@ -19,7 +22,7 @@ function getRandomLocation() {
 
 export function useClickEffect() {
   const [clickEffects, setClickEffects] = useState<ClickPosition[]>([]);
-  const wsRef = useRef<WebSocket | null>(null);
+  const socketRef = useRef<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const isTestEnv = process.env.NEXT_PUBLIC_IS_TEST_ENV === 'true';
@@ -62,95 +65,57 @@ export function useClickEffect() {
   };
 
   useEffect(() => {
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001';
-    console.log('尝试连接 WebSocket:', wsUrl);
+    // 连接 Socket.IO
+    const socket = io(config.server.wsUrl, {
+      transports: ['websocket'],
+      reconnectionDelayMax: 10000,
+    });
 
-    let reconnectTimeout: NodeJS.Timeout;
-    const connectWebSocket = () => {
-      try {
-        const ws = new WebSocket(wsUrl);
-        wsRef.current = ws;
+    socket.on('connect', () => {
+      console.log('Socket.IO 连接已建立');
+      setIsConnected(true);
+    });
 
-        ws.onopen = () => {
-          console.log('WebSocket 连接已建立');
-          setIsConnected(true);
-        };
+    socket.on('disconnect', () => {
+      console.log('Socket.IO 连接已断开');
+      setIsConnected(false);
+    });
 
-        ws.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data);
-            console.log('收到消息:', data);
+    socket.on('positions', (positions: Position[]) => {
+      console.log('收到位置更新:', positions);
+      setClickEffects(positions);
+    });
 
-            if (data.type === 'positions') {
-              const positions = data.data as ClickPosition[];
-              setClickEffects(positions);
-            }
-          } catch (error) {
-            console.error('处理消息时出错:', error);
-          }
-        };
+    socket.on('connect_error', (error) => {
+      console.error('Socket.IO 连接错误:', error);
+      setIsConnected(false);
+    });
 
-        ws.onerror = (error) => {
-          console.error('WebSocket 错误:', error);
-          setIsConnected(false);
-        };
-
-        ws.onclose = () => {
-          console.log('WebSocket 连接已关闭，5秒后重试');
-          setIsConnected(false);
-          // 设置重连
-          reconnectTimeout = setTimeout(connectWebSocket, 5000);
-        };
-      } catch (error) {
-        console.error('创建 WebSocket 连接失败:', error);
-        // 设置重连
-        reconnectTimeout = setTimeout(connectWebSocket, 5000);
-      }
-    };
-
-    connectWebSocket();
+    socketRef.current = socket;
 
     return () => {
-      clearTimeout(reconnectTimeout);
-      if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.close();
-      }
+      socket.disconnect();
     };
   }, []);
 
   const recordCurrentLocation = async () => {
     try {
       const location = await getUserLocation();
-      await sendClickEffect(location);
-      toast.success('位置已记录');
+      
+      // 通过 Socket.IO 发送位置
+      if (socketRef.current?.connected) {
+        const position: Position = {
+          ...location,
+          timestamp: Date.now()
+        };
+        socketRef.current.emit('position', position);
+        toast.success('位置已记录');
+        return location; // 返回位置信息
+      } else {
+        throw new Error('Socket.IO 未连接');
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : '记录位置失败');
-      throw error; // 重新抛出错误，让调用者知道操作失败
-    }
-  };
-
-  const sendClickEffect = async (position: { lat: number; lng: number }) => {
-    try {
-      const response = await fetch('/api/positions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...position,
-          timestamp: Date.now()
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || '添加位置失败');
-      }
-
-      console.log('位置已添加:', data);
-      return data;
-    } catch (error) {
-      console.error('发送点击效果失败:', error);
       throw error;
     }
   };

@@ -23,18 +23,20 @@ export function HomeView() {
       return;
     }
 
+    if (!earthRef.current) {
+      toast.error("地球模型未准备好");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const newLocation = await recordCurrentLocation();
+      const location = await recordCurrentLocation();
       
-      // 等待位置更新完成后再进行定位
-      setTimeout(() => {
-        if (earthRef.current && userLocation) {
-          earthRef.current.focusPosition(userLocation.lat, userLocation.lng);
-          toast.success("位置已成功记录并定位！");
-        }
-      }, 100);
-      
+      // 立即进行定位
+      if (location) {
+        earthRef.current.focusPosition(location.lat, location.lng);
+        toast.success("位置已成功记录并定位！");
+      }
     } catch (error) {
       console.error("记录位置失败:", error);
       toast.error(error instanceof Error ? error.message : "记录位置失败，请重试");
@@ -112,7 +114,12 @@ export function HomeView() {
       </div>
 
       <Canvas
-        camera={{ position: [0, 0, 3], fov: 45 }}
+        camera={{ 
+          position: [0, 0, 2.5],
+          fov: 45,
+          near: 0.1,
+          far: 1000
+        }}
         style={{ background: 'transparent' }}
       >
         <color attach="background" args={['#000000']} />
@@ -123,9 +130,10 @@ export function HomeView() {
             ref={controlsRef}
             enablePan={false}
             enableZoom={true}
-            minDistance={2}
-            maxDistance={5}
-            rotateSpeed={0.5}
+            minDistance={1.5}
+            maxDistance={4}
+            rotateSpeed={0.3}
+            zoomSpeed={0.5}
             autoRotate={isAutoRotate}
             autoRotateSpeed={0.5}
             enableDamping={true}

@@ -14,6 +14,7 @@ export const config = {
   server: {
     port: parseInt(process.env.SERVER_PORT || '3001', 10),
     wsUrl: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001',
+    apiUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
   },
   app: {
     isTestEnv: process.env.NEXT_PUBLIC_IS_TEST_ENV === 'true',

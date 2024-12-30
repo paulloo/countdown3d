@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "buildCommand": "pnpm build",
+  "outputDirectory": "apps/web/.next",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
+  "regions": ["hnd1"],
+  "builds": [
+    {
+      "src": "apps/web/next.config.js",
+      "use": "@vercel/next"
+    }
+  ],
+  "env": {
+    "NEXT_PUBLIC_API_URL": "https://jxa.us.kg"
+  },
+  "build": {
+    "env": {
+      "NEXT_TELEMETRY_DISABLED": "1"
+    }
+  },
+  "github": {
+    "enabled": true,
+    "silent": true
+  }
+} 

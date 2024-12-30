@@ -2,16 +2,63 @@
   "name": "countdown3d-monorepo",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"pnpm --filter @countdown3d/shared dev\" \"pnpm --filter @countdown3d/server dev\" \"pnpm --filter @countdown3d/web dev\"",
-    "build": "pnpm -r build",
-    "start": "pnpm -r start"
+    "dev": "pnpm --filter @countdown3d/web dev",
+    "build": "pnpm --filter @countdown3d/shared build && pnpm --filter @countdown3d/web build",
+    "start": "pnpm --filter @countdown3d/web start",
+    "lint": "pnpm --filter @countdown3d/web lint",
+    "clean": "rm -rf node_modules **/node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "postinstall": "pnpm --filter @countdown3d/database db:generate",
+    "db:generate": "pnpm --filter @countdown3d/database db:generate",
+    "db:push": "pnpm --filter @countdown3d/database db:push",
+    "db:studio": "pnpm --filter @countdown3d/database db:studio",
+    "socket:dev": "tsx apps/web/server/websocket.ts"
   },
+  "dependencies": {
+    "@prisma/client": "^5.7.0",
+    "@radix-ui/react-slot": "^1.0.2",
+    "@react-three/drei": "^9.102.6",
+    "@react-three/fiber": "^8.15.19",
+    "@react-three/postprocessing": "^2.16.5",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.0",
+    "dotenv": "^16.3.1",
+    "lucide-react": "^0.358.0",
+    "next": "14.0.4",
+    "react": "^18",
+    "react-dom": "^18",
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5",
+    "sonner": "^1.4.3",
+    "tailwind-merge": "^2.2.1",
+    "three": "^0.162.0"
+  },
+  "devDependencies": {
+    "@types/dotenv": "^8.2.0",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/three": "^0.162.0",
+    "@types/ws": "^8.5.10",
+    "@vercel/node": "^3.0.12",
+    "autoprefixer": "^10.0.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.0.4",
+    "postcss": "^8",
+    "prettier": "^3.1.0",
+    "prisma": "^5.7.0",
+    "tailwindcss": "^3.3.0",
+    "tailwindcss-animate": "^1.0.7",
+    "tsx": "^4.7.1",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@9.15.1",
   "workspaces": [
     "apps/*",
     "packages/*"
-  ],
-  "packageManager": "pnpm@9.15.1+sha512.1acb565e6193efbebda772702950469150cf12bcc764262e7587e71d19dc98a423dff9536e57ea44c49bdf790ff694e83c27be5faa23d67e0c033b583be4bfcf",
-  "devDependencies": {
-    "concurrently": "^9.1.1"
-  }
+  ]
 }
